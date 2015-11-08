@@ -10,21 +10,21 @@
 
 
 MainMenu::MainMenu(QWidget *parent) : QDialog(parent)
-, dialogIP(NULL), dialogMpdWdg(NULL)
+, dialogIP(NULL)
 {
 // Buttons
 	pbIpSettings = new QPushButton("Network");
-	pbMpdWidget = new QPushButton("MPD");
 
 // Connections
 	connect(pbIpSettings, SIGNAL(clicked()), this, SLOT(psIpSettings()));
-	connect(pbMpdWidget, SIGNAL(clicked()), this, SLOT(psMpdWidget()));
+
+	mpdWdg = new MpdWidget(this);
 
 	mainLayout = new QVBoxLayout;
 
+	mainLayout->addWidget(mpdWdg);
 	mainLayout->addStretch();
 	mainLayout->addWidget(pbIpSettings);
-	mainLayout->addWidget(pbMpdWidget);
 
 	setLayout(mainLayout);
 }
@@ -32,52 +32,27 @@ MainMenu::MainMenu(QWidget *parent) : QDialog(parent)
 MainMenu::~MainMenu()
 {
 	delete pbIpSettings;
-	delete pbMpdWidget;
 }
 
 void MainMenu::rmWdg()
 {
-	mainLayout->removeWidget(pbIpSettings);
-	mainLayout->removeWidget(pbMpdWidget);
-
-	pbIpSettings->setVisible(false);
-	pbMpdWidget->setVisible(false);
 }
 
 void MainMenu::psIpSettings()
 {
 	dialogIP = new GetIP();
 	connect(dialogIP, SIGNAL(closeWdg()), this, SLOT(rmIpSettings()));
-//	mainLayout->removeWidget(pbIpSettings);
-//	pbIpSettings->setVisible(false);
-//	delete pbIpSettings;
-	rmWdg();
 	mainLayout->addWidget(dialogIP);
 
-}
-
-void MainMenu::psMpdWidget()
-{
-	dialogMpdWdg = new MpdWidget(this);
-	connect(dialogMpdWdg, SIGNAL(closeWdg()), this, SLOT(rmMpdWidget()));
-	rmWdg();
-
-	mainLayout->addWidget(dialogMpdWdg);
-
+	mpdWdg->setVisible(false);
+	pbIpSettings->setVisible(false);
 }
 
 void MainMenu::rmIpSettings()
 {
-	mainLayout->removeWidget(dialogIP);
+//	mainLayout->removeWidget(dialogIP);
 	delete dialogIP;
 	pbIpSettings->setVisible(true);
-	pbMpdWidget->setVisible(true);
+	mpdWdg->setVisible(true);
 }
 
-void MainMenu::rmMpdWidget()
-{
-	mainLayout->removeWidget(dialogMpdWdg);
-	delete dialogMpdWdg;
-	pbIpSettings->setVisible(true);
-	pbMpdWidget->setVisible(true);
-}

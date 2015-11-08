@@ -25,17 +25,15 @@ public:
 
 private:
 	void rmWdg();
-	QPushButton *pbIpSettings, *pbMpdWidget;
+	QPushButton *pbIpSettings;
 	QBoxLayout *mainLayout;
 	GetIP *dialogIP;
-	MpdWidget *dialogMpdWdg;
+	MpdWidget *mpdWdg;
 
 
 private slots:
 	void psIpSettings();
-	void psMpdWidget();
 	void rmIpSettings();
-	void rmMpdWidget();
 
 };
 

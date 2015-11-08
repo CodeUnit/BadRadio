@@ -15,28 +15,54 @@
 #include "MpdWidget.h"
 
 MpdWidget::MpdWidget(QWidget *parent) : QWidget(parent)
+, aktPlay(false), aktStop(false)
 {
-	listWdg = new QListWidget;
 
-	QPushButton *pbExit = new QPushButton("Exit");
-	connect(pbExit, SIGNAL(clicked()), this, SLOT(psExit()));
+	timerMpd = new QTimer();
+	timerMpd->setInterval(100);
+	connect(timerMpd, SIGNAL(timeout()), this, SLOT(psMpdHB()));
+	timerMpd->start();
+
+
+	labelSender = new ScrollText();
+	labelVol = new ScrollText();
+	labelTitle = new ScrollText();
+
+	buttonPlay = new QPushButton("Play");
+	connect(buttonPlay, SIGNAL(clicked()), this, SLOT(slotPlay()));
+	buttonStop = new QPushButton("Stop");
+	connect(buttonStop, SIGNAL(clicked()), this, SLOT(slotStop()));
+
+	QBoxLayout *buttonLayout = new QHBoxLayout();
+	buttonLayout->addWidget(buttonPlay);
+	buttonLayout->addWidget(buttonStop);
 
 	QBoxLayout *mainLayout = new QVBoxLayout();
-	mainLayout->addWidget(listWdg);
-	mainLayout->addWidget(pbExit);
+	mainLayout->addWidget(labelTitle);
+	mainLayout->addWidget(labelSender);
+	mainLayout->addWidget(labelVol);
+	mainLayout->addLayout(buttonLayout);
+
+
 
 	setLayout(mainLayout);
 
-	mpd();
+
 }
 
-MpdWidget::~MpdWidget() {
-	// TODO Auto-generated destructor stub
-}
-
-
-void MpdWidget::mpd()
+MpdWidget::~MpdWidget()
 {
+}
+
+
+void MpdWidget::psMpdHB()
+{
+
+	timerMpd->stop();
+
+
+	QString dataSender, dataVol, dataTitle;
+
 	struct mpd_connection *conn;
 	struct mpd_status * status;
 	struct mpd_song *song;
@@ -46,12 +72,26 @@ void MpdWidget::mpd()
 
 
 	if (mpd_connection_get_error(conn) != MPD_ERROR_SUCCESS)
+	{
+		timerMpd->start();
 		return;
+	}
 
-	for(int i=0 ; i < 3 ; i++)
-		new QListWidgetItem(QString("Version %1: %2").
-				arg(i).
-				arg(mpd_connection_get_server_version(conn)[i]), listWdg);
+	if (aktPlay)
+	{
+		aktPlay = false;
+		mpd_send_command(conn, "play", NULL);
+		timerMpd->start();
+		return;
+	}
+
+	if (aktStop)
+	{
+		aktStop = false;
+		mpd_send_command(conn, "stop", NULL);
+		timerMpd->start();
+		return;
+	}
 
 
 	mpd_command_list_begin(conn, true);
@@ -64,24 +104,22 @@ void MpdWidget::mpd()
 	status = mpd_recv_status(conn);
 	if (status == NULL)
 	{
-		new QListWidgetItem("status: NULL", listWdg);
+		timerMpd->start();
 		return ;
 	}
 
 
-	new QListWidgetItem(QString("Volume: %1").
-			arg(mpd_status_get_volume(status)), listWdg);
+
+// Volume
+	dataVol.number(mpd_status_get_volume(status));
+	if (labelVol->text().compare(dataVol) != 0)
+		labelVol->setText(dataVol);
 
 	if (mpd_status_get_error(status) != NULL)
 		new QListWidgetItem(QString("status error: %1").
 				arg(mpd_status_get_error(status)));
 
 
-	if (mpd_status_get_state(status) == MPD_STATE_PLAY ||
-	    mpd_status_get_state(status) == MPD_STATE_PAUSE) {
-		new QListWidgetItem(QString("song: %1").
-				arg(mpd_status_get_song_pos(status)));
-	}
 
 	mpd_status_free(status);
 // Status
@@ -92,37 +130,64 @@ void MpdWidget::mpd()
 	song = mpd_recv_song(conn);
 	if (song == NULL)
 	{
-		new QListWidgetItem("song: NULL", listWdg);
 		handle_error(conn);
+		timerMpd->start();
 		return ;
 	}
 
-	new QListWidgetItem(QString("Song URI: %1").
-			arg(mpd_song_get_uri(song)), listWdg);
+
+// Title
+	dataTitle = mpd_song_get_uri(song);
+	if (labelTitle->text().compare(dataTitle) != 0)
+		labelTitle->setText(dataTitle);
+
+
+
 
 	unsigned int i = 0;
 	QString value;
 
 	while ((value = mpd_song_get_tag(song, MPD_TAG_TITLE, i++)) != NULL)
-		new QListWidgetItem(QString("Title: %1")
-				.arg(value), listWdg);
+	{
+		if (i > 0)
+			dataSender.append("  ");
+		dataSender.append(value);
+	}
+
+	if (labelSender->text().compare(dataSender) != 0)
+	{
+		labelSender->setText(dataSender);
+		qDebug() << "refresh";
+	}
 
 	mpd_song_free(song);
 // Song
 
 	mpd_connection_free(conn);
 
+	timerMpd->start();
 }
 
 
 void MpdWidget::handle_error(struct mpd_connection *c)
 {
-	new QListWidgetItem(QString("ErrorCode: %1")
-			.arg(mpd_connection_get_error_message(c)), listWdg);
+//	new QListWidgetItem(QString("ErrorCode: %1")
+//			.arg(mpd_connection_get_error_message(c)), listWdg);
 	mpd_connection_free(c);
+}
+
+void MpdWidget::slotPlay()
+{
+	aktPlay = true;
+}
+
+void MpdWidget::slotStop()
+{
+	aktStop = true;
 }
 
 void MpdWidget::psExit()
 {
 	emit closeWdg();
 }
+

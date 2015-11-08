@@ -13,6 +13,8 @@
 
 #include <connection.h>
 
+#include "ScrollText.h"
+
 class MpdWidget: public QWidget {
 
 	Q_OBJECT
@@ -22,12 +24,18 @@ public:
 	virtual ~MpdWidget();
 
 private:
-	void mpd();
 	void handle_error(struct mpd_connection *c);
-	QListWidget *listWdg;
+	QTimer *timerMpd;
+	QPushButton *buttonPlay, *buttonStop;
+	ScrollText *labelSender, *labelVol, *labelTitle;
+	bool aktPlay, aktStop;
+
 
 private slots:
 	void psExit();
+	void psMpdHB();
+	void slotPlay();
+	void slotStop();
 
 signals:
 	void closeWdg();
