@@ -18,7 +18,7 @@
 #include <QtNetwork/QHostAddress>
 #include <QListView>
 #include <QDialog>
-#include <QtGui>
+#include <QtWidgets>
 
 #include "arpa/inet.h"
 

@@ -9,11 +9,13 @@
 #define MPDWIDGET_H_
 
 #include <QDialog>
-#include <QtGui>
+#include <QtWidgets>
+#include <QDebug>
 
 #include <connection.h>
 
 #include "ScrollText.h"
+#include "LED.h"
 
 class MpdWidget: public QWidget {
 
@@ -26,9 +28,9 @@ public:
 private:
 	void handle_error(struct mpd_connection *c);
 	QTimer *timerMpd;
-	QPushButton *buttonPlay, *buttonStop;
+	QPushButton *buttonPlay, *buttonStop, *buttonNext, *buttonPrev;
 	ScrollText *labelSender, *labelVol, *labelTitle;
-	bool aktPlay, aktStop;
+	bool aktPlay, aktStop, aktNext, aktPrev;
 
 
 private slots:
@@ -36,6 +38,8 @@ private slots:
 	void psMpdHB();
 	void slotPlay();
 	void slotStop();
+	void slotNext();
+	void slotPrev();
 
 signals:
 	void closeWdg();

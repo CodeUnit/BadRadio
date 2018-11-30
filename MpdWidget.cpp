@@ -15,7 +15,7 @@
 #include "MpdWidget.h"
 
 MpdWidget::MpdWidget(QWidget *parent) : QWidget(parent)
-, aktPlay(false), aktStop(false)
+, aktPlay(false), aktStop(false), aktNext(false), aktPrev(false)
 {
 
 	timerMpd = new QTimer();
@@ -23,6 +23,8 @@ MpdWidget::MpdWidget(QWidget *parent) : QWidget(parent)
 	connect(timerMpd, SIGNAL(timeout()), this, SLOT(psMpdHB()));
 	timerMpd->start();
 
+	LED *led = new LED();
+	led->setLedSize(10);
 
 	labelSender = new ScrollText();
 	labelVol = new ScrollText();
@@ -32,13 +34,23 @@ MpdWidget::MpdWidget(QWidget *parent) : QWidget(parent)
 	connect(buttonPlay, SIGNAL(clicked()), this, SLOT(slotPlay()));
 	buttonStop = new QPushButton("Stop");
 	connect(buttonStop, SIGNAL(clicked()), this, SLOT(slotStop()));
+	buttonNext = new QPushButton("Next");
+	connect(buttonNext, SIGNAL(clicked()), this, SLOT(slotNext()));
+	buttonPrev = new QPushButton("Prev");
+	connect(buttonPrev, SIGNAL(clicked()), this, SLOT(slotPrev()));
 
 	QBoxLayout *buttonLayout = new QHBoxLayout();
 	buttonLayout->addWidget(buttonPlay);
 	buttonLayout->addWidget(buttonStop);
+	buttonLayout->addWidget(buttonNext);
+	buttonLayout->addWidget(buttonPrev);
+
+	QBoxLayout *hLayout = new QHBoxLayout;
+	hLayout->addWidget(labelTitle);
+	hLayout->addWidget(led);
 
 	QBoxLayout *mainLayout = new QVBoxLayout();
-	mainLayout->addWidget(labelTitle);
+	mainLayout->addLayout(hLayout);
 	mainLayout->addWidget(labelSender);
 	mainLayout->addWidget(labelVol);
 	mainLayout->addLayout(buttonLayout);
@@ -89,6 +101,22 @@ void MpdWidget::psMpdHB()
 	{
 		aktStop = false;
 		mpd_send_command(conn, "stop", NULL);
+		timerMpd->start();
+		return;
+	}
+
+	if (aktNext)
+	{
+		aktNext = false;
+		mpd_send_command(conn, "next", NULL);
+		timerMpd->start();
+		return;
+	}
+
+	if (aktPrev)
+	{
+		aktPrev = false;
+		mpd_send_command(conn, "previous", NULL);
 		timerMpd->start();
 		return;
 	}
@@ -184,6 +212,16 @@ void MpdWidget::slotPlay()
 void MpdWidget::slotStop()
 {
 	aktStop = true;
+}
+
+void MpdWidget::slotNext()
+{
+	aktNext = true;
+}
+
+void MpdWidget::slotPrev()
+{
+	aktPrev = true;
 }
 
 void MpdWidget::psExit()

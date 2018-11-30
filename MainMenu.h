@@ -9,7 +9,7 @@
 #define MAINMENU_H_
 
 #include <QDialog>
-#include <QtGui>
+#include <QtWidgets>
 
 #include "GetIP.h"
 #include "MpdWidget.h"
