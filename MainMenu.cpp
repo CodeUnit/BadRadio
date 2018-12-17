@@ -5,12 +5,10 @@
  *      Author: gunit
  */
 
-#include <GetIP.h>
 #include "MainMenu.h"
 
 
-MainMenu::MainMenu(QWidget *parent) : QDialog(parent)
-, dialogIP(NULL)
+MainMenu::MainMenu(QWidget *parent) : QDialog(parent) //, dialogIP(NULL)
 {
 // Buttons
 	pbIpSettings = new QPushButton("Network");
@@ -24,7 +22,7 @@ MainMenu::MainMenu(QWidget *parent) : QDialog(parent)
 
 	mainLayout->addWidget(mpdWdg);
 	mainLayout->addStretch();
-	mainLayout->addWidget(pbIpSettings);
+//	mainLayout->addWidget(pbIpSettings);
 
 	setLayout(mainLayout);
 }
@@ -40,19 +38,19 @@ void MainMenu::rmWdg()
 
 void MainMenu::psIpSettings()
 {
-	dialogIP = new GetIP();
-	connect(dialogIP, SIGNAL(closeWdg()), this, SLOT(rmIpSettings()));
-	mainLayout->addWidget(dialogIP);
-
-	mpdWdg->setVisible(false);
-	pbIpSettings->setVisible(false);
+//	dialogIP = new GetIP();
+//	connect(dialogIP, SIGNAL(closeWdg()), this, SLOT(rmIpSettings()));
+//	mainLayout->addWidget(dialogIP);
+//
+//	mpdWdg->setVisible(false);
+//	pbIpSettings->setVisible(false);
 }
 
 void MainMenu::rmIpSettings()
 {
-//	mainLayout->removeWidget(dialogIP);
-	delete dialogIP;
-	pbIpSettings->setVisible(true);
-	mpdWdg->setVisible(true);
+////	mainLayout->removeWidget(dialogIP);
+//	delete dialogIP;
+//	pbIpSettings->setVisible(true);
+//	mpdWdg->setVisible(true);
 }
 

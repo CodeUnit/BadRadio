@@ -11,7 +11,7 @@
 #include <QDialog>
 #include <QtWidgets>
 
-#include "GetIP.h"
+//#include "GetIP.h"
 #include "MpdWidget.h"
 
 class MainMenu: public QDialog
@@ -27,7 +27,7 @@ private:
 	void rmWdg();
 	QPushButton *pbIpSettings;
 	QBoxLayout *mainLayout;
-	GetIP *dialogIP;
+//	GetIP *dialogIP;
 	MpdWidget *mpdWdg;
 
 
