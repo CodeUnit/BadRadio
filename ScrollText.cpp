@@ -2,8 +2,7 @@
 #include <QPainter>
 
 
-ScrollText::ScrollText(QWidget *parent) :
-    QWidget(parent), scrollPos(0)
+ScrollText::ScrollText(QWidget *parent) : QWidget(parent), scrollPos(0)
 {
     staticText.setTextFormat(Qt::PlainText);
 
@@ -14,6 +13,20 @@ ScrollText::ScrollText(QWidget *parent) :
 
     connect(&timer, SIGNAL(timeout()), this, SLOT(timer_timeout()));
     timer.setInterval(50);
+}
+
+ScrollText::ScrollText(QString text, QWidget *parent) : QWidget(parent), scrollPos(0)
+{
+    staticText.setTextFormat(Qt::PlainText);
+
+    setFixedHeight(fontMetrics().height());
+    leftMargin = height() / 3;
+
+    setSeparator("   ---   ");
+
+    connect(&timer, SIGNAL(timeout()), this, SLOT(timer_timeout()));
+    timer.setInterval(50);
+    setText(text);
 }
 
 QString ScrollText::text() const

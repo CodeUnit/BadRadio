@@ -5,12 +5,7 @@
  *      Author: gunit
  */
 
-#include <mpd/client.h>
-#include <mpd/status.h>
-#include <mpd/entity.h>
-#include <mpd/search.h>
-#include <mpd/tag.h>
-#include <mpd/message.h>
+#include <QTextStream>
 
 #include "MpdWidget.h"
 
@@ -18,44 +13,72 @@ MpdWidget::MpdWidget(QWidget *parent) : QWidget(parent)
 , aktPlay(false), aktStop(false), aktNext(false), aktPrev(false)
 {
 
+	con = NULL;
+    mpdWdg = new QWidget;
+    playlistWdg = new QWidget;
+
+    stackedWidget = new QStackedWidget;
+    stackedWidget->addWidget(mpdWdg);
+    stackedWidget->addWidget(playlistWdg);
+
+
 	timerMpd = new QTimer();
 	timerMpd->setInterval(100);
 	connect(timerMpd, SIGNAL(timeout()), this, SLOT(psMpdHB()));
 	timerMpd->start();
 
+	QSize buttonSize(64, 64);
+
+
+// MPD Design
 	LED *led = new LED();
 	led->setLedSize(10);
 
-	labelSender = new ScrollText();
-	labelVol = new ScrollText();
-	labelTitle = new ScrollText();
+	labelSender = new ScrollText("SenderSenderSenderSenderSenderSender");
+	labelVol = new ScrollText("VolVolVolVolVolVolVolVolVolVolVolVolVol");
+	labelTitle = new ScrollText("TitelTitelTitelTitelTitelTitelTitelTitel");
 
 	buttonPlay = new QPushButton("Play");
+	buttonPlay->setFixedSize(buttonSize);
 	connect(buttonPlay, SIGNAL(clicked()), this, SLOT(slotPlay()));
 	buttonStop = new QPushButton("Stop");
+	buttonStop->setFixedSize(buttonSize);
 	connect(buttonStop, SIGNAL(clicked()), this, SLOT(slotStop()));
 	buttonNext = new QPushButton("Next");
+	buttonNext->setFixedSize(buttonSize);
 	connect(buttonNext, SIGNAL(clicked()), this, SLOT(slotNext()));
 	buttonPrev = new QPushButton("Prev");
+	buttonPrev->setFixedSize(buttonSize);
 	connect(buttonPrev, SIGNAL(clicked()), this, SLOT(slotPrev()));
+	buttonPlaylist = new QPushButton("Playlist");
+	buttonPlaylist->setFixedSize(buttonSize);
+	connect(buttonPlaylist, SIGNAL(clicked()), this, SLOT(sltPlaylist()));
 
-	QBoxLayout *buttonLayout = new QHBoxLayout();
-	buttonLayout->addWidget(buttonPlay);
-	buttonLayout->addWidget(buttonStop);
-	buttonLayout->addWidget(buttonNext);
-	buttonLayout->addWidget(buttonPrev);
-
-	QBoxLayout *hLayout = new QHBoxLayout;
-	hLayout->addWidget(labelTitle);
-	hLayout->addWidget(led);
 
 	QBoxLayout *mainLayout = new QVBoxLayout();
-	mainLayout->addLayout(hLayout);
-	mainLayout->addWidget(labelSender);
-	mainLayout->addWidget(labelVol);
-	mainLayout->addLayout(buttonLayout);
+	mainLayout->addWidget(stackedWidget);
+
+	QGridLayout *mpdWdgLayout = new QGridLayout(mpdWdg);
+	mpdWdgLayout->addWidget(labelTitle, 0, 0, 1, 3);
+	mpdWdgLayout->addWidget(led, 0, 3, Qt::AlignRight);
+	mpdWdgLayout->addWidget(labelSender, 1, 0, 1, 4);
+	mpdWdgLayout->addWidget(labelVol, 2, 0, 1, 4);
+	mpdWdgLayout->addWidget(buttonPrev, 3, 0);
+	mpdWdgLayout->addWidget(buttonPlay, 3, 1);
+	mpdWdgLayout->addWidget(buttonStop, 3, 2);
+	mpdWdgLayout->addWidget(buttonNext, 3, 3);
+	mpdWdgLayout->addWidget(buttonPlaylist, 4, 3);
 
 
+// Playlist Design
+	buttonMpd = new QPushButton("Back");
+	buttonMpd->setFixedSize(buttonSize);
+	connect(buttonMpd, SIGNAL(clicked()), this, SLOT(sltMpd()));
+
+	QGridLayout *playlistWdgLayout = new QGridLayout(playlistWdg);
+	playlistWdgLayout->addWidget(buttonMpd, 0, 0);
+	playlistWdgLayout->addWidget(new QLabel("Hallo"), 0, 1);
+	playlistWdgLayout->addWidget(new QLabel("Hallo"), 1, 0);
 
 	setLayout(mainLayout);
 
@@ -66,6 +89,10 @@ MpdWidget::~MpdWidget()
 {
 }
 
+void MpdWidget::sltConnect()
+{
+	con = mpd_connection_new(NULL, 0, 30000);
+}
 
 void MpdWidget::psMpdHB()
 {
@@ -228,4 +255,24 @@ void MpdWidget::psExit()
 {
 	emit closeWdg();
 }
+
+void MpdWidget::sltMpd()
+{
+	stackedWidget->setCurrentIndex(0);
+}
+
+void MpdWidget::sltPlaylist()
+{
+	stackedWidget->setCurrentIndex(1);
+}
+
+
+void MpdWidget::resizeEvent(QResizeEvent *event)
+{
+	Q_UNUSED(event);
+
+}
+
+
+
 

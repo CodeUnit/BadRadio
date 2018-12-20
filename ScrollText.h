@@ -13,7 +13,8 @@ class ScrollText : public QWidget
     Q_PROPERTY(QString separator READ separator WRITE setSeparator)
 
 public:
-    explicit ScrollText(QWidget *parent = 0);
+    ScrollText(QWidget *parent = 0);
+    ScrollText(QString text, QWidget *parent = 0);
 
 public:
     QString text() const;
