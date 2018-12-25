@@ -21,6 +21,9 @@ public:
 	LED(QWidget *parent = 0);
 	virtual ~LED();
 	void setLedSize(int size);
+	void setState(bool _state);
+	void setRed();
+	void setGreen();
 
 private:
   bool lit;
@@ -34,6 +37,8 @@ protected:
    void paintEvent(QPaintEvent *);
    void mousePressEvent(QMouseEvent *e);
 
+signals:
+	void clicked();
 
 
 };

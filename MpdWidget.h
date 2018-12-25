@@ -11,15 +11,8 @@
 #include <QDialog>
 #include <QtWidgets>
 #include <QDebug>
-
-#include <mpd/client.h>
-#include <mpd/status.h>
-#include <mpd/entity.h>
-#include <mpd/search.h>
-#include <mpd/tag.h>
-#include <mpd/message.h>
-
-#include <connection.h>
+#include <QTcpSocket>
+#include <QHostAddress>
 
 #include "ScrollText.h"
 #include "LED.h"
@@ -33,31 +26,39 @@ public:
 	virtual ~MpdWidget();
 
 private:
-	struct mpd_connection *con;
-
-    QWidget *mpdWdg;
+	LED *led;
+	QTcpSocket *mpdSocket;
+	QWidget *mpdWdg;
     QWidget *playlistWdg;
     QStackedWidget *stackedWidget;
-
-    void handle_error(struct mpd_connection *c);
 	QTimer *timerMpd;
-	QPushButton *buttonPlay, *buttonStop, *buttonNext, *buttonPrev, *buttonPlaylist, *buttonMpd;
+	QPushButton *buttonPlay, *buttonStop, *buttonNext, *buttonPrev, *buttonLeiser,
+	*buttonLauter, *buttonPlaylist, *buttonMpd;
 	ScrollText *labelSender, *labelVol, *labelTitle;
 	bool aktPlay, aktStop, aktNext, aktPrev;
+	bool toggleBool;
+	quint8 volume;
 
 protected:
 	void resizeEvent(QResizeEvent *event);
 
 private slots:
-	void sltConnect();
+	void sltMpdConnect();
 	void psExit();
-	void psMpdHB();
+	void sltMpdHB();
 	void slotPlay();
 	void slotStop();
 	void slotNext();
 	void slotPrev();
+	void slotLeiser();
+	void slotLauter();
 	void sltPlaylist();
 	void sltMpd();
+
+	void sltConnected();
+	void sltDisconnected();
+	void sltReadyRead();
+	void sltBytesWritten(qint64);
 
 signals:
 	void closeWdg();

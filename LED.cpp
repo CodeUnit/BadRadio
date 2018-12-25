@@ -11,9 +11,9 @@ LED::LED(QWidget *parent) : QWidget(parent)
 {
     setFixedSize(28, 28);
     lit = false;
-    ledOnColor=Qt::green;
-    ledOffColor=Qt::red;
-    ledOnPattern = Qt::SolidPattern;
+    ledOnColor    = Qt::green;
+    ledOffColor   = Qt::red;
+    ledOnPattern  = Qt::SolidPattern;
     ledOffPattern = Qt::SolidPattern;
     ledSize=20;
 
@@ -23,12 +23,6 @@ LED::~LED() {
 	// TODO Auto-generated destructor stub
 }
 
-void LED::paintEvent(QPaintEvent *) {
-  QPainter p(this);
-  lit ?  p.setBrush(QBrush(ledOnColor, ledOnPattern)) : p.setBrush(QBrush(ledOffColor, ledOffPattern));
-  p.drawEllipse(0,0,ledSize,ledSize);
-}
-
 void LED::setLedSize(int size)
 {
     ledSize=size;
@@ -36,9 +30,33 @@ void LED::setLedSize(int size)
     repaint();
 }
 
+void LED::setState(bool _state)
+{
+	lit = _state;
+	repaint();
+}
+
+void LED::setRed()
+{
+	lit = false;
+	repaint();
+}
+
+void LED::setGreen()
+{
+	lit = true;
+	repaint();
+}
+
+void LED::paintEvent(QPaintEvent *)
+{
+	QPainter p(this);
+	lit ?  p.setBrush(QBrush(ledOnColor, ledOnPattern)) : p.setBrush(QBrush(ledOffColor, ledOffPattern));
+	p.drawEllipse(0,0,ledSize,ledSize);
+}
+
 void LED::mousePressEvent(QMouseEvent *e)
 {
 	Q_UNUSED(e);
-
-	QApplication::quit();
+	emit clicked();
 }

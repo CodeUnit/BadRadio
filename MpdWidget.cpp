@@ -10,11 +10,11 @@
 #include "MpdWidget.h"
 
 MpdWidget::MpdWidget(QWidget *parent) : QWidget(parent)
-, aktPlay(false), aktStop(false), aktNext(false), aktPrev(false)
+, aktPlay(false), aktStop(false), aktNext(false), aktPrev(false), toggleBool(false)
 {
+	QSize buttonSize(64, 64);
 
-	con = NULL;
-    mpdWdg = new QWidget;
+	mpdWdg = new QWidget;
     playlistWdg = new QWidget;
 
     stackedWidget = new QStackedWidget;
@@ -23,16 +23,21 @@ MpdWidget::MpdWidget(QWidget *parent) : QWidget(parent)
 
 
 	timerMpd = new QTimer();
-	timerMpd->setInterval(100);
-	connect(timerMpd, SIGNAL(timeout()), this, SLOT(psMpdHB()));
+	timerMpd->setInterval(500);
+	connect(timerMpd, SIGNAL(timeout()), this, SLOT(sltMpdHB()));
 	timerMpd->start();
 
-	QSize buttonSize(64, 64);
+	mpdSocket = new QTcpSocket;
+	connect(mpdSocket, SIGNAL(connected()),this, SLOT(sltConnected()));
+	connect(mpdSocket, SIGNAL(disconnected()),this, SLOT(sltDisconnected()));
+	connect(mpdSocket, SIGNAL(readyRead()),this, SLOT(sltReadyRead()));
+	connect(mpdSocket, SIGNAL(bytesWritten(qint64)),this, SLOT(sltBytesWritten(qint64)));
 
 
 // MPD Design
-	LED *led = new LED();
+	led = new LED();
 	led->setLedSize(10);
+	connect(led, SIGNAL(clicked()), this, SLOT(sltMpdConnect()));
 
 	labelSender = new ScrollText("SenderSenderSenderSenderSenderSender");
 	labelVol = new ScrollText("VolVolVolVolVolVolVolVolVolVolVolVolVol");
@@ -50,10 +55,15 @@ MpdWidget::MpdWidget(QWidget *parent) : QWidget(parent)
 	buttonPrev = new QPushButton("Prev");
 	buttonPrev->setFixedSize(buttonSize);
 	connect(buttonPrev, SIGNAL(clicked()), this, SLOT(slotPrev()));
+	buttonLeiser = new QPushButton("Leiser");
+	connect(buttonLeiser, SIGNAL(clicked()), this, SLOT(slotLeiser()));
+	buttonLeiser->setFixedSize(buttonSize);
+	buttonLauter = new QPushButton("Lauter");
+	connect(buttonLauter, SIGNAL(clicked()), this, SLOT(slotLauter()));
+	buttonLauter->setFixedSize(buttonSize);
 	buttonPlaylist = new QPushButton("Playlist");
 	buttonPlaylist->setFixedSize(buttonSize);
 	connect(buttonPlaylist, SIGNAL(clicked()), this, SLOT(sltPlaylist()));
-
 
 	QBoxLayout *mainLayout = new QVBoxLayout();
 	mainLayout->addWidget(stackedWidget);
@@ -67,6 +77,8 @@ MpdWidget::MpdWidget(QWidget *parent) : QWidget(parent)
 	mpdWdgLayout->addWidget(buttonPlay, 3, 1);
 	mpdWdgLayout->addWidget(buttonStop, 3, 2);
 	mpdWdgLayout->addWidget(buttonNext, 3, 3);
+	mpdWdgLayout->addWidget(buttonLeiser, 4, 1);
+	mpdWdgLayout->addWidget(buttonLauter, 4, 2);
 	mpdWdgLayout->addWidget(buttonPlaylist, 4, 3);
 
 
@@ -83,172 +95,149 @@ MpdWidget::MpdWidget(QWidget *parent) : QWidget(parent)
 	setLayout(mainLayout);
 
 
+	sltMpdConnect();
+
 }
 
 MpdWidget::~MpdWidget()
 {
+
 }
 
-void MpdWidget::sltConnect()
+void MpdWidget::sltMpdConnect()
 {
-	con = mpd_connection_new(NULL, 0, 30000);
+	if (mpdSocket->state() != QAbstractSocket::UnconnectedState)
+		return;
+
+	mpdSocket->connectToHost(QHostAddress("127.0.0.1"), 6600);
 }
 
-void MpdWidget::psMpdHB()
+void MpdWidget::sltConnected()
 {
-
-	timerMpd->stop();
-
-
-	QString dataSender, dataVol, dataTitle;
-
-	struct mpd_connection *conn;
-	struct mpd_status * status;
-	struct mpd_song *song;
-//	const struct mpd_audio_format *audio_format;
-
-	conn = mpd_connection_new(NULL, 0, 30000);
-
-
-	if (mpd_connection_get_error(conn) != MPD_ERROR_SUCCESS)
-	{
-		timerMpd->start();
-		return;
-	}
-
-	if (aktPlay)
-	{
-		aktPlay = false;
-		mpd_send_command(conn, "play", NULL);
-		timerMpd->start();
-		return;
-	}
-
-	if (aktStop)
-	{
-		aktStop = false;
-		mpd_send_command(conn, "stop", NULL);
-		timerMpd->start();
-		return;
-	}
-
-	if (aktNext)
-	{
-		aktNext = false;
-		mpd_send_command(conn, "next", NULL);
-		timerMpd->start();
-		return;
-	}
-
-	if (aktPrev)
-	{
-		aktPrev = false;
-		mpd_send_command(conn, "previous", NULL);
-		timerMpd->start();
-		return;
-	}
-
-
-	mpd_command_list_begin(conn, true);
-	mpd_send_status(conn);
-	mpd_send_current_song(conn);
-	mpd_command_list_end(conn);
-
-
-// Status
-	status = mpd_recv_status(conn);
-	if (status == NULL)
-	{
-		timerMpd->start();
-		return ;
-	}
-
-
-
-// Volume
-	dataVol.number(mpd_status_get_volume(status));
-	if (labelVol->text().compare(dataVol) != 0)
-		labelVol->setText(dataVol);
-
-	if (mpd_status_get_error(status) != NULL)
-		new QListWidgetItem(QString("status error: %1").
-				arg(mpd_status_get_error(status)));
-
-
-
-	mpd_status_free(status);
-// Status
-
-	mpd_response_next(conn);
-
-// Song
-	song = mpd_recv_song(conn);
-	if (song == NULL)
-	{
-		handle_error(conn);
-		timerMpd->start();
-		return ;
-	}
-
-
-// Title
-	dataTitle = mpd_song_get_uri(song);
-	if (labelTitle->text().compare(dataTitle) != 0)
-		labelTitle->setText(dataTitle);
-
-
-
-
-	unsigned int i = 0;
-	QString value;
-
-	while ((value = mpd_song_get_tag(song, MPD_TAG_TITLE, i++)) != NULL)
-	{
-		if (i > 0)
-			dataSender.append("  ");
-		dataSender.append(value);
-	}
-
-	if (labelSender->text().compare(dataSender) != 0)
-	{
-		labelSender->setText(dataSender);
-		qDebug() << "refresh";
-	}
-
-	mpd_song_free(song);
-// Song
-
-	mpd_connection_free(conn);
-
-	timerMpd->start();
+	qDebug() << __FUNCTION__;
+	led->setState(true);
 }
-
-
-void MpdWidget::handle_error(struct mpd_connection *c)
+void MpdWidget::sltDisconnected()
 {
-//	new QListWidgetItem(QString("ErrorCode: %1")
-//			.arg(mpd_connection_get_error_message(c)), listWdg);
-	mpd_connection_free(c);
+	qDebug() << "Disconnected!!!";
+	led->setState(false);
 }
+
+void MpdWidget::sltReadyRead()
+{
+	qDebug() << "reading...";
+	QByteArray data = mpdSocket->readAll();
+
+	QStringList liste = QString::fromStdString(data.data()).split('\n');
+
+	qDebug() << liste;
+
+	for (int i = 0; i < liste.size(); i++)
+	{
+		if (liste.at(i).contains("Title: "))
+		{
+			QString tmpStr = QString(liste.at(i)).remove("Title: ");
+			if (labelTitle->text().compare(tmpStr) != 0)
+				labelTitle->setText(tmpStr);
+		}
+
+		if (liste.at(i).contains("Name: "))
+		{
+			QString tmpStr = QString(liste.at(i)).remove("Name: ");
+			if (labelSender->text().compare(tmpStr) != 0)
+				labelSender->setText(tmpStr);
+		}
+
+		if (liste.at(i).contains("volume: "))
+		{
+			QString tmpStr = QString(liste.at(i)).remove("volume: ");
+			if (labelVol->text().compare(tmpStr) != 0)
+				labelVol->setText(tmpStr);
+		}
+
+
+	}
+
+}
+
+void MpdWidget::sltBytesWritten(qint64 size)
+{
+	qDebug() << "Sended Size: " << size;
+}
+
+void MpdWidget::sltMpdHB()
+{
+	if (mpdSocket->state() != QAbstractSocket::ConnectedState)
+		return;
+
+	if (toggleBool)
+		mpdSocket->write("currentsong\n");
+	else
+		mpdSocket->write("status\n");
+
+	toggleBool = !toggleBool;
+}
+
+
 
 void MpdWidget::slotPlay()
 {
-	aktPlay = true;
+	if (mpdSocket->state() != QAbstractSocket::ConnectedState)
+		return;
+
+	mpdSocket->write("play\n");
+	mpdSocket->write("playlist\n");
+
 }
 
 void MpdWidget::slotStop()
 {
-	aktStop = true;
+	if (mpdSocket->state() != QAbstractSocket::ConnectedState)
+		return;
+
+	mpdSocket->write("stop\n");
+
 }
 
 void MpdWidget::slotNext()
 {
-	aktNext = true;
+	if (mpdSocket->state() != QAbstractSocket::ConnectedState)
+		return;
+
+	mpdSocket->write("next\n");
+
 }
 
 void MpdWidget::slotPrev()
 {
-	aktPrev = true;
+	if (mpdSocket->state() != QAbstractSocket::ConnectedState)
+		return;
+
+	mpdSocket->write("previous\n");
+
+}
+
+void MpdWidget::slotLeiser()
+{
+	if (mpdSocket->state() != QAbstractSocket::ConnectedState)
+		return;
+
+	int vol = labelVol->text().toInt() - 10;
+	if (vol < 0)
+		vol = 0;
+	mpdSocket->write(QString("setvol %1\n").arg(vol).toLatin1());
+}
+
+void MpdWidget::slotLauter()
+{
+	if (mpdSocket->state() != QAbstractSocket::ConnectedState)
+		return;
+
+	int vol = labelVol->text().toInt() + 10;
+	if (vol > 100)
+		vol = 100;
+	mpdSocket->write(QString("setvol %1\n").arg(vol).toLatin1());
+
 }
 
 void MpdWidget::psExit()
@@ -263,6 +252,7 @@ void MpdWidget::sltMpd()
 
 void MpdWidget::sltPlaylist()
 {
+	QApplication::quit();
 	stackedWidget->setCurrentIndex(1);
 }
 
@@ -272,7 +262,6 @@ void MpdWidget::resizeEvent(QResizeEvent *event)
 	Q_UNUSED(event);
 
 }
-
 
 
 
