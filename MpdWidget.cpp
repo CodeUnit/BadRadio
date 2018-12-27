@@ -21,7 +21,6 @@ MpdWidget::MpdWidget(QWidget *parent) : QWidget(parent)
     stackedWidget->addWidget(mpdWdg);
     stackedWidget->addWidget(playlistWdg);
 
-
 	timerMpd = new QTimer();
 	timerMpd->setInterval(500);
 	connect(timerMpd, SIGNAL(timeout()), this, SLOT(sltMpdHB()));
@@ -252,7 +251,6 @@ void MpdWidget::sltMpd()
 
 void MpdWidget::sltPlaylist()
 {
-	QApplication::quit();
 	stackedWidget->setCurrentIndex(1);
 }
 

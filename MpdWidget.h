@@ -37,7 +37,7 @@ private:
 	ScrollText *labelSender, *labelVol, *labelTitle;
 	bool aktPlay, aktStop, aktNext, aktPrev;
 	bool toggleBool;
-	quint8 volume;
+	int volume;
 
 protected:
 	void resizeEvent(QResizeEvent *event);
