@@ -13,6 +13,7 @@
 #include <QDebug>
 #include <QTcpSocket>
 #include <QHostAddress>
+#include <QSpacerItem>
 
 #include "ScrollText.h"
 #include "LED.h"
@@ -33,7 +34,7 @@ private:
     QStackedWidget *stackedWidget;
 	QTimer *timerMpd;
 	QPushButton *buttonPlay, *buttonStop, *buttonNext, *buttonPrev, *buttonLeiser,
-	*buttonLauter, *buttonPlaylist, *buttonMpd, *buttonQuitt;
+	*buttonLauter, *buttonPlaylist, *buttonMpd, *buttonQuitt, *buttonLoadPL;
 	ScrollText *labelSender, *labelVol, *labelTitle;
 	bool aktPlay, aktStop, aktNext, aktPrev;
 	bool toggleBool;
@@ -53,7 +54,11 @@ private slots:
 	void slotLeiser();
 	void slotLauter();
 	void sltPlaylist();
+
+
+// PlaylistWidget
 	void sltMpd();
+	void sltLoadPL();
 	void sltQuitt();
 
 	void sltConnected();

@@ -63,9 +63,7 @@ MpdWidget::MpdWidget(QWidget *parent) : QWidget(parent)
 	buttonPlaylist = new QPushButton("Playlist");
 	buttonPlaylist->setFixedSize(buttonSize);
 	connect(buttonPlaylist, SIGNAL(clicked()), this, SLOT(sltPlaylist()));
-	buttonQuitt = new QPushButton("Exit");
-	buttonQuitt->setFixedSize(buttonSize);
-	connect(buttonQuitt, SIGNAL(clicked()), this, SLOT(sltQuitt()));
+
 
 	QBoxLayout *mainLayout = new QVBoxLayout();
 	mainLayout->addWidget(stackedWidget);
@@ -88,12 +86,29 @@ MpdWidget::MpdWidget(QWidget *parent) : QWidget(parent)
 	buttonMpd = new QPushButton("Back");
 	buttonMpd->setFixedSize(buttonSize);
 	connect(buttonMpd, SIGNAL(clicked()), this, SLOT(sltMpd()));
+	buttonLoadPL = new QPushButton("Load");
+	buttonLoadPL->setFixedSize(buttonSize);
+	connect(buttonLoadPL, SIGNAL(clicked()), this, SLOT(sltLoadPL()));
+	buttonQuitt = new QPushButton("Exit");
+	buttonQuitt->setFixedSize(buttonSize);
+	connect(buttonQuitt, SIGNAL(clicked()), this, SLOT(sltQuitt()));
 
 	QGridLayout *playlistWdgLayout = new QGridLayout(playlistWdg);
-	playlistWdgLayout->addWidget(buttonQuitt, 0, 0);
-	playlistWdgLayout->addWidget(new QLabel("Hallo"), 0, 1);
-	playlistWdgLayout->addWidget(new QLabel("Hallo"), 1, 0);
-	playlistWdgLayout->addWidget(buttonMpd, 4, 3);
+// 1. line
+	playlistWdgLayout->addItem(new QSpacerItem(1,1, QSizePolicy::Expanding, QSizePolicy::Expanding), 0, 0);
+	playlistWdgLayout->addItem(new QSpacerItem(1,1, QSizePolicy::Expanding, QSizePolicy::Expanding), 0, 1);
+	playlistWdgLayout->addItem(new QSpacerItem(1,1, QSizePolicy::Expanding, QSizePolicy::Expanding), 0, 2);
+	playlistWdgLayout->addItem(new QSpacerItem(1,1, QSizePolicy::Expanding, QSizePolicy::Expanding), 0, 3);
+// 2. Line
+	playlistWdgLayout->addItem(new QSpacerItem(1,1, QSizePolicy::Expanding, QSizePolicy::Expanding), 1, 0);
+	playlistWdgLayout->addItem(new QSpacerItem(1,1, QSizePolicy::Expanding, QSizePolicy::Expanding), 1, 1);
+	playlistWdgLayout->addItem(new QSpacerItem(1,1, QSizePolicy::Expanding, QSizePolicy::Expanding), 1, 2);
+	playlistWdgLayout->addItem(new QSpacerItem(1,1, QSizePolicy::Expanding, QSizePolicy::Expanding), 1, 3);
+// 3. Line
+	playlistWdgLayout->addItem(new QSpacerItem(1,1, QSizePolicy::Expanding, QSizePolicy::Expanding), 2, 0);
+	playlistWdgLayout->addItem(new QSpacerItem(1,1, QSizePolicy::Expanding, QSizePolicy::Expanding), 2, 1);
+	playlistWdgLayout->addWidget(buttonLoadPL, 2, 2);
+	playlistWdgLayout->addWidget(buttonMpd, 2, 3);
 
 
 	setLayout(mainLayout);
@@ -257,6 +272,14 @@ void MpdWidget::sltMpd()
 void MpdWidget::sltPlaylist()
 {
 	stackedWidget->setCurrentIndex(1);
+}
+
+
+// PlaylistWidget
+void MpdWidget::sltLoadPL()
+{
+	// läd die Playlist standard
+	mpdSocket->write("load default\n");
 }
 
 void MpdWidget::sltQuitt()
