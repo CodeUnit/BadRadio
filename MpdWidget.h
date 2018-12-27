@@ -33,7 +33,7 @@ private:
     QStackedWidget *stackedWidget;
 	QTimer *timerMpd;
 	QPushButton *buttonPlay, *buttonStop, *buttonNext, *buttonPrev, *buttonLeiser,
-	*buttonLauter, *buttonPlaylist, *buttonMpd;
+	*buttonLauter, *buttonPlaylist, *buttonMpd, *buttonQuitt;
 	ScrollText *labelSender, *labelVol, *labelTitle;
 	bool aktPlay, aktStop, aktNext, aktPrev;
 	bool toggleBool;
@@ -54,6 +54,7 @@ private slots:
 	void slotLauter();
 	void sltPlaylist();
 	void sltMpd();
+	void sltQuitt();
 
 	void sltConnected();
 	void sltDisconnected();

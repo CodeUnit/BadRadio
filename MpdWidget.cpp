@@ -63,6 +63,9 @@ MpdWidget::MpdWidget(QWidget *parent) : QWidget(parent)
 	buttonPlaylist = new QPushButton("Playlist");
 	buttonPlaylist->setFixedSize(buttonSize);
 	connect(buttonPlaylist, SIGNAL(clicked()), this, SLOT(sltPlaylist()));
+	buttonQuitt = new QPushButton("Exit");
+	buttonQuitt->setFixedSize(buttonSize);
+	connect(buttonQuitt, SIGNAL(clicked()), this, SLOT(sltQuitt()));
 
 	QBoxLayout *mainLayout = new QVBoxLayout();
 	mainLayout->addWidget(stackedWidget);
@@ -87,9 +90,11 @@ MpdWidget::MpdWidget(QWidget *parent) : QWidget(parent)
 	connect(buttonMpd, SIGNAL(clicked()), this, SLOT(sltMpd()));
 
 	QGridLayout *playlistWdgLayout = new QGridLayout(playlistWdg);
-	playlistWdgLayout->addWidget(buttonMpd, 0, 0);
+	playlistWdgLayout->addWidget(buttonQuitt, 0, 0);
 	playlistWdgLayout->addWidget(new QLabel("Hallo"), 0, 1);
 	playlistWdgLayout->addWidget(new QLabel("Hallo"), 1, 0);
+	playlistWdgLayout->addWidget(buttonMpd, 4, 3);
+
 
 	setLayout(mainLayout);
 
@@ -254,6 +259,10 @@ void MpdWidget::sltPlaylist()
 	stackedWidget->setCurrentIndex(1);
 }
 
+void MpdWidget::sltQuitt()
+{
+	QApplication::quit();
+}
 
 void MpdWidget::resizeEvent(QResizeEvent *event)
 {
